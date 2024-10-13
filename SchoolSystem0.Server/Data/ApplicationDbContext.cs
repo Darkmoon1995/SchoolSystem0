@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SchoolSystem.Server.Models;
 using SchoolSystem0.Server.Models;
+using System.Reflection.Emit;
 
 namespace SchoolSystem0.Server.Data
 {
@@ -35,7 +36,9 @@ namespace SchoolSystem0.Server.Data
             // Configure Owned Types for ContactInformation and SchoolDetails
             builder.Entity<Student>()
                 .OwnsOne(s => s.ContactInformation);
-
+            builder.Entity<ApplicationUser>()
+              .HasIndex(u => u.FullName)
+              .IsUnique();
             builder.Entity<Student>()
                 .OwnsOne(s => s.SchoolDetails);
 

@@ -8,4 +8,10 @@
     <!-- Folder where production build objects will be placed -->
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist</BuildOutputFolder>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="tsconfig.node.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptConfiguration Include="tsconfig.node.json" />
+  </ItemGroup>
 </Project>

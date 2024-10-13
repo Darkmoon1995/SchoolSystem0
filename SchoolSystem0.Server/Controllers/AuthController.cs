@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SchoolSystem.Server.Models;
 using SchoolSystem0.Server.Model;
@@ -63,25 +64,29 @@ namespace SchoolSystem0.Server.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            // Find the user by FullName
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.FullName == model.FullName);
+
+            // If no user is found or password is incorrect, return Unauthorized
             if (user == null || !(await _userManager.CheckPasswordAsync(user, model.Password)))
             {
                 return Unauthorized();
             }
 
+            // Generate JWT token
             var token = GenerateJwtToken(user);
             return Ok(new { token });
         }
 
+
         private string GenerateJwtToken(ApplicationUser user)
         {
             var claims = new List<Claim>
-{
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-             new Claim(ClaimTypes.Name, user.UserName)
-    // Add roles or other claims as needed
-};
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+        new Claim(ClaimTypes.Name, user.FullName),  // Include FullName in JWT token
+        // Add other claims as needed
+    };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -95,9 +100,9 @@ namespace SchoolSystem0.Server.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
-
         }
+
     }
 
-    
+
 }

@@ -60,7 +60,7 @@ namespace SchoolSystem0.Server.Controllers
             // 3. If the user is not authorized
             return Forbid();
         }
-        [HttpGet("ByToken")]
+        [HttpGet("Myself")]
         [Authorize] // Ensure the user is authenticated
         public async Task<ActionResult<Student>> GetStudentByToken()
         {

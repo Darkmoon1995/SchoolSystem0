@@ -1,7 +1,12 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 import Login from './Pages/Login.jsx'
-import StudentDashboard from './Pages/StudentDashboard.jsx'
+import News from './Pages/News'
+import Expenses from './Pages/Expenses'
+import ClassList from './Pages/ClassList'
+import TaxiServices from './Pages/TaxiServices'
+import Library from './Pages/Library'
+import Layout from './Pages/Layout'
 
 const PrivateRoute = ({ children }) => {
     const token = localStorage.getItem('token')
@@ -15,14 +20,20 @@ export default function App() {
                 <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route
-                        path="/dashboard"
+                        path="/"
                         element={
                             <PrivateRoute>
-                                <StudentDashboard />
+                                <Layout />
                             </PrivateRoute>
                         }
-                    />
-                    <Route path="/" element={<Navigate to="/login" replace />} />
+                    >
+                        <Route index element={<Navigate to="/dashboard" replace />} />
+                        <Route path="dashboard" element={<News />} />
+                        <Route path="expenses" element={<Expenses />} />
+                        <Route path="class-list" element={<ClassList />} />
+                        <Route path="taxi-services" element={<TaxiServices />} />
+                        <Route path="library" element={<Library />} />
+                    </Route>
                 </Routes>
             </div>
         </Router>

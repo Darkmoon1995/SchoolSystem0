@@ -203,6 +203,9 @@ namespace SchoolSystem0.Server.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FullName")
+                        .IsUnique();
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -418,6 +421,10 @@ namespace SchoolSystem0.Server.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Absences")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<int?>("ClassId")
                         .HasColumnType("INTEGER");
@@ -645,6 +652,12 @@ namespace SchoolSystem0.Server.Migrations
                                 .IsRequired()
                                 .HasMaxLength(255)
                                 .HasColumnType("TEXT");
+
+                            b1.Property<double>("Latitude")
+                                .HasColumnType("REAL");
+
+                            b1.Property<double>("Longitude")
+                                .HasColumnType("REAL");
 
                             b1.Property<string>("PhoneNumber")
                                 .IsRequired()

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,23 @@ export default function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        // Clear all stored data when the Login component mounts
+        localStorage.clear();
+        sessionStorage.clear();
+        // Remove all cookies
+        document.cookie.split(";").forEach((c) => {
+            document.cookie = c
+                .replace(/^ +/, "")
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+        // Check for error message from StudentDashboard
+        if (location.state?.error) {
+            setError(location.state.error);
+        }
+    }, [location.state]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -40,7 +57,7 @@ export default function Login() {
             localStorage.setItem('token', data.token);
 
             // Redirect to the dashboard
-            navigate('/dashboard');
+            navigate('/dashboard', { replace: true });
         } catch (err) {
             setError('Invalid credentials. Please try again.');
         } finally {

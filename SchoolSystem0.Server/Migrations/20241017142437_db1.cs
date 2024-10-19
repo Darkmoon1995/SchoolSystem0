@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SchoolSystem0.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class OMGPLEASEWORK : Migration
+    public partial class db1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -294,9 +294,12 @@ namespace SchoolSystem0.Server.Migrations
                     ContactInformation_Email = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
                     ContactInformation_PhoneNumber = table.Column<string>(type: "TEXT", maxLength: 15, nullable: false),
                     ContactInformation_Address = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
+                    ContactInformation_Latitude = table.Column<double>(type: "REAL", nullable: false),
+                    ContactInformation_Longitude = table.Column<double>(type: "REAL", nullable: false),
                     SchoolDetails_SchoolName = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
                     SchoolDetails_ClassName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     SchoolDetails_Grade = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
+                    Absences = table.Column<string>(type: "TEXT", nullable: false),
                     ClassId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
@@ -407,6 +410,12 @@ namespace SchoolSystem0.Server.Migrations
                 name: "EmailIndex",
                 table: "AspNetUsers",
                 column: "NormalizedEmail");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_FullName",
+                table: "AspNetUsers",
+                column: "FullName",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",

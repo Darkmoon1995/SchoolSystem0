@@ -2,11 +2,15 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using SchoolSystem.Server.Models;
 using SchoolSystem0.Server.Data;
 using SchoolSystem0.Server.Models;
-using System.Security.Claims;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace SchoolSystem0.Server.Controllers
 {
@@ -16,11 +20,15 @@ namespace SchoolSystem0.Server.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
 
-        public StudentsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public StudentsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _userManager = userManager;
+            _httpClient = httpClient;
+            _configuration = configuration;
         }
 
         // GET: api/Students/{id}
@@ -42,75 +50,67 @@ namespace SchoolSystem0.Server.Controllers
                 return NotFound();
             }
 
-            // Get user who is associated with the student
             var studentUser = await _userManager.FindByEmailAsync(student.ContactInformation.Email);
 
-            // 1. Allow access if the user is a Teacher, BaseManager, or Manager
+            // Allow access if the user is a Teacher, BaseManager, or Manager
             if (currentUserRoles.Contains("Teacher") || currentUserRoles.Contains("BaseManager") || currentUserRoles.Contains("Manager"))
             {
                 return Ok(student);
             }
 
-            // 2. Allow access if the student is accessing their own data
+            // Allow access if the student is accessing their own data
             if (studentUser != null && currentUserId == studentUser.Id)
             {
                 return Ok(student);
             }
 
-            // 3. If the user is not authorized
             return Forbid();
         }
+
+        // GET: api/Students/Myself (Get the current authenticated student's data)
         [HttpGet("Myself")]
-        [Authorize] // Ensure the user is authenticated
+        [Authorize]
         public async Task<ActionResult<Student>> GetStudentByToken()
         {
-            // Get the current authenticated user from the JWT token
             var currentUser = await _userManager.GetUserAsync(User);
 
-            // Check if the current user is found
             if (currentUser == null)
             {
                 return Unauthorized(new { message = "User is not authenticated or could not be found" });
             }
 
-            // Extract the user's email or other identifier from the token
             var currentUserEmail = currentUser.Email;
 
-            // Fetch the student associated with the current user's email
             var student = await _context.Students
                 .Include(s => s.Grades)
                 .Include(s => s.Costs)
                 .FirstOrDefaultAsync(s => s.ContactInformation.Email.ToLower() == currentUserEmail.ToLower());
 
-            // If no student is found, return NotFound
             if (student == null)
             {
                 return NotFound(new { message = "Student not found" });
             }
 
-            // Get the roles of the current user
             var currentUserRoles = await _userManager.GetRolesAsync(currentUser);
 
-            // 1. Allow access if the user is a Teacher, BaseManager, or Manager
+            // Allow access if the user is a Teacher, BaseManager, or Manager
             if (currentUserRoles.Contains("Teacher") || currentUserRoles.Contains("BaseManager") || currentUserRoles.Contains("Manager"))
             {
                 return Ok(student);
             }
 
-            // 2. Allow access if the student is accessing their own data
+            // Allow access if the student is accessing their own data
             if (currentUserEmail == student.ContactInformation.Email)
             {
                 return Ok(student);
             }
 
-            // 3. If the user is not authorized
             return Forbid();
         }
 
-
-        // PUT: api/Students/{id} (For updating student data)
+        // PUT: api/Students/{id} (Update student data)
         [HttpPut("{id}")]
-        [Authorize(Roles = "Teacher, BaseManager, Manager")] // Only these roles can update student data
+        [Authorize(Roles = "Teacher, BaseManager, Manager")]
         public async Task<IActionResult> UpdateStudent(int id, Student updatedStudent)
         {
             if (id != updatedStudent.Id)
@@ -124,7 +124,7 @@ namespace SchoolSystem0.Server.Controllers
                 return NotFound();
             }
 
-            // Update logic (only teachers/managers can update)
+            // Update logic
             student.FullName = updatedStudent.FullName;
             student.DateOfBirth = updatedStudent.DateOfBirth;
             student.Gender = updatedStudent.Gender;
@@ -152,7 +152,7 @@ namespace SchoolSystem0.Server.Controllers
             return NoContent();
         }
 
-        // POST: api/Students (For adding new students - Only Teacher, BaseManager, Manager can add)
+        // POST: api/Students (Create new student)
         [HttpPost]
         [Authorize]
         public async Task<ActionResult<Student>> CreateStudent(Student student)
@@ -163,7 +163,7 @@ namespace SchoolSystem0.Server.Controllers
             return CreatedAtAction("GetStudent", new { id = student.Id }, student);
         }
 
-        // DELETE: api/Students/{id} (Only Teacher, BaseManager, Manager can delete students)
+        // DELETE: api/Students/{id}
         [HttpDelete("{id}")]
         [Authorize(Roles = "Teacher, BaseManager, Manager")]
         public async Task<IActionResult> DeleteStudent(int id)
@@ -180,6 +180,101 @@ namespace SchoolSystem0.Server.Controllers
             return NoContent();
         }
 
+        // GET: api/Students/{id}/grade (Get a student's grade)
+        [HttpGet("{id}/grade")]
+        [Authorize]
+        public async Task<ActionResult<double>> GetGrade(int id)
+        {
+            var student = await _context.Students.FindAsync(id);
+            if (student == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(student.Grades);
+        }
+
+        // GET: api/Students/{id}/cost (Get a student's cost)
+        [HttpGet("{id}/cost")]
+        [Authorize]
+        public async Task<ActionResult<decimal>> GetCost(int id)
+        {
+            var student = await _context.Students.FindAsync(id);
+            if (student == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(student.Costs);
+        }
+
+        // POST: api/Students/{id}/absences (Add a new absence)
+        [HttpPost("{id}/absences")]
+        [Authorize(Roles = "Teacher, BaseManager, Manager")]
+        public async Task<IActionResult> AddAbsence(int id, [FromBody] DateTime absenceDate)
+        {
+            var student = await _context.Students.FindAsync(id);
+            if (student == null)
+            {
+                return NotFound();
+            }
+
+            student.Absences.Add(absenceDate);
+            await _context.SaveChangesAsync();
+
+            return Ok(student.Absences);
+        }
+
+        // GET: api/Students/{id}/absences (Get all absences)
+        [HttpGet("{id}/absences")]
+        [Authorize]
+        public async Task<ActionResult<List<DateTime>>> GetAbsences(int id)
+        {
+            var student = await _context.Students.FindAsync(id);
+            if (student == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(student.Absences);
+        }
+
+        // API for interacting with Neshan distance matrix
+        [HttpGet("group-near-school")]
+        [Authorize]
+        public async Task<ActionResult<List<List<Student>>>> GetGroupsNearSchool([FromQuery] double schoolLat, [FromQuery] double schoolLon)
+        {
+            var students = await _context.Students.Include(s => s.ContactInformation).ToListAsync();
+            var distanceService = new DistanceService(_httpClient, _configuration);
+
+            var studentsWithDistance = new List<(Student student, double distance)>();
+
+            // Calculate distance of each student from the school
+            foreach (var student in students)
+            {
+                var distance = await distanceService.GetDistanceAsync(
+                    student.ContactInformation.Latitude,
+                    student.ContactInformation.Longitude,
+                    schoolLat,
+                    schoolLon);
+
+                studentsWithDistance.Add((student, distance));
+            }
+
+            // Sort students by distance
+            var sortedStudents = studentsWithDistance.OrderBy(s => s.distance).ToList();
+
+            // Group students in groups of 4
+            var groupedStudents = new List<List<Student>>();
+            for (int i = 0; i < sortedStudents.Count; i += 4)
+            {
+                groupedStudents.Add(sortedStudents.Skip(i).Take(4).Select(s => s.student).ToList());
+            }
+
+            return Ok(groupedStudents);
+        }
+
+        // Helper function to check if a student exists
         private bool StudentExists(int id)
         {
             return _context.Students.Any(e => e.Id == id);

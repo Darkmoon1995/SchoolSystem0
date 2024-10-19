@@ -6,6 +6,8 @@ import Expenses from './Pages/Expenses'
 import ClassList from './Pages/ClassList'
 import TaxiServices from './Pages/TaxiServices'
 import Library from './Pages/Library'
+import Attendance from './Pages/Attendance'
+import Grades from './Pages/Grades'
 import Layout from './Pages/Layout'
 
 const PrivateRoute = ({ children }) => {
@@ -33,6 +35,8 @@ export default function App() {
                         <Route path="class-list" element={<ClassList />} />
                         <Route path="taxi-services" element={<TaxiServices />} />
                         <Route path="library" element={<Library />} />
+                        <Route path="attendance" element={<Attendance />} />
+                        <Route path="grades" element={<Grades />} />
                     </Route>
                 </Routes>
             </div>

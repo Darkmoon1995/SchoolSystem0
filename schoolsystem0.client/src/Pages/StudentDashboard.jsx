@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { Outlet, Link, useLocation } from 'react-router-dom'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 
 export default function StudentDashboard() {
     const [student, setStudent] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState('')
     const location = useLocation()
+    const navigate = useNavigate()
 
     useEffect(() => {
         const fetchStudentData = async () => {
@@ -30,14 +30,27 @@ export default function StudentDashboard() {
                 const data = await response.json()
                 setStudent(data)
             } catch (err) {
-                setError('Error fetching student data. Please try again later.')
+                console.error('Error fetching student data:', err)
+                // Clear all data
+                localStorage.clear()
+                sessionStorage.clear()
+                document.cookie.split(";").forEach((c) => {
+                    document.cookie = c
+                        .replace(/^ +/, "")
+                        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                })
+                // Redirect to login
+                navigate('/login', {
+                    state: { error: 'Error fetching student data. Please log in again.' },
+                    replace: true
+                })
             } finally {
                 setIsLoading(false)
             }
         }
 
         fetchStudentData()
-    }, [])
+    }, [navigate])
 
     if (isLoading) {
         return (
@@ -45,10 +58,6 @@ export default function StudentDashboard() {
                 <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
             </div>
         )
-    }
-
-    if (error) {
-        return <div className="text-red-500 text-center mt-4">{error}</div>
     }
 
     const isActive = (path) => location.pathname === `/dashboard${path}`
@@ -74,7 +83,9 @@ export default function StudentDashboard() {
                     <Link to="/dashboard/class-list" className={`block py-2 px-4 ${isActive('/class-list') ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>Class List</Link>
                     <Link to="/dashboard/taxi-services" className={`block py-2 px-4 ${isActive('/taxi-services') ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>Taxi Services</Link>
                     <Link to="/dashboard/library" className={`block py-2 px-4 ${isActive('/library') ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>Library</Link>
-                    <Link to="/dashboard/Tests" className={`block py-2 px-4 ${isActive('/library') ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>Library</Link>
+                    <Link to="/dashboard/Tests" className={`block py-2 px-4 ${isActive('/Tests') ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>Tests</Link>
+                    <Link to="/attendance" className="block py-2 px-4 hover:bg-gray-100">Attendance</Link>
+                    <Link to="/grades" className="block py-2 px-4 hover:bg-gray-100">Grades</Link>
                 </nav>
             </div>
 

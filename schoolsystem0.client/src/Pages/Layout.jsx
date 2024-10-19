@@ -74,6 +74,8 @@ export default function Layout() {
                     <Link to="/class-list" className={`block py-2 px-4 ${isActive('/class-list') ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>Class List</Link>
                     <Link to="/taxi-services" className={`block py-2 px-4 ${isActive('/taxi-services') ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>Taxi Services</Link>
                     <Link to="/library" className={`block py-2 px-4 ${isActive('/library') ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>Library</Link>
+                    <Link to="/attendance" className="block py-2 px-4 hover:bg-gray-100">Attendance</Link>
+                    <Link to="/grades" className="block py-2 px-4 hover:bg-gray-100">Grades</Link>
                 </nav>
             </div>
 

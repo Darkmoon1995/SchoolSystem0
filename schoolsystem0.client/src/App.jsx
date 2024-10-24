@@ -1,14 +1,14 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
-import Login from './Pages/Login.jsx'
-import News from './Pages/News'
-import Expenses from './Pages/Expenses'
-import ClassList from './Pages/ClassList'
-import TaxiServices from './Pages/TaxiServices'
-import Library from './Pages/Library'
-import Attendance from './Pages/Attendance'
-import Grades from './Pages/Grades'
-import Layout from './Pages/Layout'
+import Login from './Pages/Student/Login.jsx'
+import News from './Pages/Student/News'
+import Expenses from './Pages/Student/Expenses'
+import ClassList from './Pages/Student/ClassList'
+import TaxiServices from './Pages/Student/TaxiServices'
+import Library from './Pages/Student/Library'
+import Attendance from './Pages/Student/Attendance'
+import Grades from './Pages/Student/Grades'
+import Layout from './Pages/Student/Layout'
 
 const PrivateRoute = ({ children }) => {
     const token = localStorage.getItem('token')

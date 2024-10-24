@@ -30,7 +30,8 @@ export default function Layout() {
                 const data = await response.json();
                 setStudent(data);
             } catch (err) {
-                setError('Error fetching student data. Please try again later.');
+                navigate('/');
+                localStorage.removeItem('token');
             } finally {
                 setIsLoading(false);
             }
@@ -50,7 +51,6 @@ export default function Layout() {
     if (error) {
         return <div className="text-red-500 text-center mt-4">{error}</div>;
     }
-
     const isActive = (path) => location.pathname === path;
 
     return (

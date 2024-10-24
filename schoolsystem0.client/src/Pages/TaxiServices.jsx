@@ -1,142 +1,170 @@
-import React, { useEffect, useRef, useState } from 'react';
-import PropTypes from 'prop-types';
-import { Loader2, MapPin } from 'lucide-react';
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+﻿import React, { useEffect, useState } from 'react';
 
-function TaxiServices() {
-    const mapContainer = useRef(null);
-    const map = useRef(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [selectedGroup, setSelectedGroup] = useState(null);
+const loadScript = (url) => {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.body.appendChild(script);
+    });
+};
 
-    useEffect(() => {
-        const loadNeshanSDK = () => {
-            const script = document.createElement('script');
-            script.src = 'https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.js'; // Example Neshan SDK script
-            script.async = true;
-            script.onload = () => initMap(); // Call the function to initialize the map
-            document.body.appendChild(script);
+const MapComponent = () => {
+    const [exampleResponse, setExampleResponse] = useState(null);
+
+    // Define initializeMap before using it
+    const initializeMap = (data) => {
+        const neshanMap = new nmp_mapboxgl.Map({
+            mapType: nmp_mapboxgl.Map.mapTypes.neshanVector,
+            container: "map",
+            zoom: 15,
+            pitch: 0,
+            center: [51.391165, 35.700956],
+            minZoom: 2,
+            maxZoom: 21,
+            trackResize: true,
+            mapKey: "web.57011b28fe9242c2a8903262bb2bfd1e", // Replace with your actual API key
+            poi: false,
+            traffic: false,
+            mapTypeControllerOptions: {
+                show: true,
+                position: 'bottom-left'
+            }
+        });
+
+        const routes = [];
+        const points = [];
+
+        for (let k = 0; k < data.routes.length; k++) {
+            for (let j = 0; j < data.routes[k].legs.length; j++) {
+                for (let i = 0; i < data.routes[k].legs[j].steps.length; i++) {
+                    const step = data.routes[k].legs[j].steps[i]["polyline"];
+                    const point = data.routes[k].legs[j].steps[i]["start_location"];
+
+                    const route = polyline.decode(step, 5);
+                    route.map(item => { item.reverse() });
+
+                    routes.push(route);
+                    points.push(point);
+                }
+            }
+        }
+
+        const routeObj = {
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'MultiLineString',
+                        coordinates: routes
+                    }
+                }
+            ]
         };
 
-        const initMap = () => {
-            if (!mapContainer.current || map.current) return;
+        const pointsObj = {
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: "Feature",
+                    geometry: {
+                        "type": "MultiPoint",
+                        "coordinates": points
+                    }
+                }
+            ]
+        };
 
-            map.current = new neshanMap.Map({
-                key: API_KEY,
-                center: [schoolLon, schoolLat],
-                zoom: 14,
+        neshanMap.on('load', function () {
+            neshanMap.addSource('route', {
+                type: 'geojson',
+                data: routeObj
+            });
+            neshanMap.addSource('points1', {
+                type: 'geojson',
+                data: pointsObj
             });
 
-            map.current.on('load', () => {
-                setLoading(false);
-                fetchStudentGroups(schoolLat, schoolLon);
+            neshanMap.addLayer({
+                id: 'route-line',
+                type: 'line',
+                source: 'route',
+                layout: {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                paint: {
+                    'line-color': '#250ECD',
+                    'line-width': 9
+                }
             });
+
+            neshanMap.addLayer({
+                id: 'points1',
+                type: 'circle',
+                source: 'points1',
+                paint: {
+                    "circle-color": "#9fbef9",
+                    "circle-stroke-color": "#FFFFFF",
+                    "circle-stroke-width": 2,
+                    "circle-radius": 5
+                }
+            });
+        });
+    };
+
+    useEffect(() => {
+        const token = localStorage.getItem('token'); // Get the token from localStorage
+
+        const fetchData = async () => {
+            try {
+                const response = await fetch('https://localhost:7287/api/Students/group-near-school?schoolLat=50&schoolLon=50', {
+                    method: 'GET',
+                    headers: {
+                        'accept': '*/*',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+
+                const data = await response.json();
+                setExampleResponse(data); // Set the fetched data to exampleResponse
+            } catch (error) {
+                console.error("Error fetching data", error);
+            }
+        };
+
+        // Load Neshan SDK and Mapbox Polyline library dynamically
+        const loadNeshanSDK = async () => {
+            try {
+                await loadScript("https://static.neshan.org/sdk/mapboxgl/v1.13.2/neshan-sdk/v1.1.1/index.js");
+                await loadScript("https://cdnjs.cloudflare.com/ajax/libs/mapbox-polyline/1.2.1/polyline.js");
+                fetchData();
+            } catch (error) {
+                console.error("Error loading scripts", error);
+            }
         };
 
         loadNeshanSDK();
     }, []);
 
-
-    const fetchStudentGroups = async (schoolLat, schoolLon) => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(
-                `https://localhost:7287/api/Students/group-near-school?schoolLat=${schoolLat}&schoolLon=${schoolLon}`,
-                {
-                    headers: {
-                        'accept': 'text/plain',
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch student groups');
-            }
-
-            const data = await response.json();
-            addMarkersToMap(data, schoolLat, schoolLon);
-        } catch (err) {
-            setError('Error fetching student groups. Please try again later.');
-            console.error('Error:', err);
+    useEffect(() => {
+        if (exampleResponse) {
+            initializeMap(exampleResponse); // Initialize the map once the data is fetched
         }
-    };
-
-    const addMarkersToMap = (studentGroups, schoolLat, schoolLon) => {
-        // Add school marker
-        new neshanMap.Marker()
-            .setLngLat([schoolLon, schoolLat])
-            .setPopup(new neshanMap.Popup().setHTML("<h3>School</h3>"))
-            .addTo(map.current);
-
-        // Add student group markers
-        studentGroups.forEach((group, index) => {
-            const avgLat = group.reduce((sum, student) => sum + student.contactInformation.latitude, 0) / group.length;
-            const avgLon = group.reduce((sum, student) => sum + student.contactInformation.longitude, 0) / group.length;
-
-            const marker = new neshanMap.Marker({ color: '#FF0000' })
-                .setLngLat([avgLon, avgLat])
-                .setPopup(new neshanMap.Popup().setHTML(`<h3>Group ${index + 1}</h3><p>${group.length} students</p>`))
-                .addTo(map.current);
-
-            marker.getElement().addEventListener('click', () => setSelectedGroup(group));
-        });
-    };
-
-    const handleRequestTaxi = () => {
-        if (selectedGroup) {
-            alert(`Taxi requested for ${selectedGroup.length} students in this group.`);
-            // Here you would typically make an API call to request the taxi
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        );
-    }
-
-    if (error) {
-        return <div className="text-red-500 p-4">{error}</div>;
-    }
+    }, [exampleResponse]);
 
     return (
-        <div className="h-screen flex flex-col p-4">
-            <h1 className="text-2xl font-bold mb-4">Taxi Services</h1>
-            <div className="flex flex-col md:flex-row gap-4 h-full">
-                <div ref={mapContainer} className="flex-grow h-[400px] md:h-auto rounded-lg shadow-md" />
-                <Card className="w-full md:w-64">
-                    <CardHeader>
-                        <CardTitle>Selected Group</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {selectedGroup ? (
-                            <>
-                                <p className="mb-2">{selectedGroup.length} students in this group</p>
-                                <ul className="list-disc pl-5 mb-4">
-                                    {selectedGroup.map(student => (
-                                        <li key={student.id}>{student.fullName}</li>
-                                    ))}
-                                </ul>
-                                <Button onClick={handleRequestTaxi} className="w-full">
-                                    <MapPin className="mr-2 h-4 w-4" /> Request Taxi
-                                </Button>
-                            </>
-                        ) : (
-                            <p>Select a group on the map to view details and request a taxi.</p>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
+        <div style={{ height: "100vh", width: "100vw", margin: 0 }}>
+            <div id="map" style={{ height: "100%", width: "100%" }}></div>
         </div>
     );
 }
 
-TaxiServices.propTypes = {
-};
-
-export default TaxiServices;
+export default MapComponent;

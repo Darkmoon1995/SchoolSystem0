@@ -242,37 +242,29 @@ namespace SchoolSystem0.Server.Controllers
         // API for interacting with Neshan distance matrix
         [HttpGet("group-near-school")]
         [Authorize]
-        public async Task<ActionResult<List<List<Student>>>> GetGroupsNearSchool([FromQuery] double schoolLat, [FromQuery] double schoolLon)
+        public async Task<ActionResult> GetGroupsNearSchool([FromQuery] double schoolLat, [FromQuery] double schoolLon)
         {
+            // Get all students and their contact information
             var students = await _context.Students.Include(s => s.ContactInformation).ToListAsync();
             var distanceService = new DistanceService(_httpClient, _configuration);
 
-            var studentsWithDistance = new List<(Student student, double distance)>();
+            // Prepare waypoints for the Neshan API request
+            var waypoints = string.Join("%7C", students.Select(s =>
+                $"{s.ContactInformation.Latitude},{s.ContactInformation.Longitude}"));
 
-            // Calculate distance of each student from the school
-            foreach (var student in students)
+            // Call the Neshan API with waypoints
+            var routeResponse = await distanceService.GetRouteWithWaypointsAsync(schoolLat, schoolLon, waypoints);
+
+            // Process the response (you can customize how you return the results)
+            if (routeResponse == null)
             {
-                var distance = await distanceService.GetDistanceAsync(
-                    student.ContactInformation.Latitude,
-                    student.ContactInformation.Longitude,
-                    schoolLat,
-                    schoolLon);
-
-                studentsWithDistance.Add((student, distance));
+                return BadRequest("Failed to get route information.");
             }
 
-            // Sort students by distance
-            var sortedStudents = studentsWithDistance.OrderBy(s => s.distance).ToList();
-
-            // Group students in groups of 4
-            var groupedStudents = new List<List<Student>>();
-            for (int i = 0; i < sortedStudents.Count; i += 4)
-            {
-                groupedStudents.Add(sortedStudents.Skip(i).Take(4).Select(s => s.student).ToList());
-            }
-
-            return Ok(groupedStudents);
+            // Return the full Neshan JSON response
+            return Ok(routeResponse);
         }
+
 
         // Helper function to check if a student exists
         private bool StudentExists(int id)

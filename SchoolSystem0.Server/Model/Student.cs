@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics;
 
 namespace SchoolSystem0.Server.Models
 {
@@ -38,7 +37,7 @@ namespace SchoolSystem0.Server.Models
         public ICollection<Grade> Grades { get; set; } = new List<Grade>();
         public ICollection<Cost> Costs { get; set; } = new List<Cost>();
 
-        // New: List to track student absences
+        // List to track student absences
         public List<DateTime> Absences { get; set; } = new List<DateTime>();
     }
 
@@ -59,14 +58,13 @@ namespace SchoolSystem0.Server.Models
         [StringLength(500)]
         public string Address { get; set; }
 
-        // Add Latitude and Longitude
+        // Latitude and Longitude for location tracking
         [Required]
         public double Latitude { get; set; }
 
         [Required]
         public double Longitude { get; set; }
     }
-
 
     // School Details class, Owned by Student
     public class SchoolDetails
@@ -81,6 +79,8 @@ namespace SchoolSystem0.Server.Models
         [StringLength(10)] // Grade length constraint (e.g., "A", "B", "10th")
         public string Grade { get; set; }
     }
+
+    // Grade class to store test results for students
     public class Grade
     {
         [Key]
@@ -96,9 +96,9 @@ namespace SchoolSystem0.Server.Models
 
         // Foreign key for Student
         public int StudentId { get; set; }
-        // Remove the Student object here, keeping just the StudentId
     }
 
+    // Cost class to store expenses for students
     public class Cost
     {
         [Key]
@@ -114,31 +114,35 @@ namespace SchoolSystem0.Server.Models
 
         [Required]
         public DateTime DateIncurred { get; set; }
+
+        // Foreign key for Student
         public int StudentId { get; set; }
     }
+
+    // Class to handle Neshan API response for directions
     public class NeshanDirectionResponse
     {
-        public Route[] routes { get; set; }
+        public Route[] Routes { get; set; }
 
         public class Route
         {
-            public Leg[] legs { get; set; }
+            public Leg[] Legs { get; set; }
         }
 
         public class Leg
         {
-            public Distance distance { get; set; }
-            public Duration duration { get; set; }
+            public Distance Distance { get; set; }
+            public Duration Duration { get; set; }
         }
 
         public class Distance
         {
-            public double value { get; set; }
+            public double Value { get; set; } // Distance in meters
         }
 
         public class Duration
         {
-            public double value { get; set; }
+            public double Value { get; set; } // Duration in seconds
         }
     }
 }

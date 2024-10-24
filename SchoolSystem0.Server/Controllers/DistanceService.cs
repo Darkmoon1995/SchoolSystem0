@@ -15,7 +15,8 @@ namespace SchoolSystem0.Server.Controllers
             _configuration = configuration;
         }
 
-        public async Task<double> GetDistanceAsync(double studentLat, double studentLon, double schoolLat, double schoolLon)
+        // Method to get route information with waypoints
+        public async Task<string> GetRouteWithWaypointsAsync(double schoolLat, double schoolLon, string waypoints)
         {
             var apiKey = _configuration["Neshan:ApiKey"];
             if (string.IsNullOrEmpty(apiKey))
@@ -23,7 +24,12 @@ namespace SchoolSystem0.Server.Controllers
                 throw new Exception("API Key is missing.");
             }
 
-            var requestUri = $"https://api.neshan.org/v4/direction?type=car&origin={studentLat},{studentLon}&destination={schoolLat},{schoolLon}&avoidTrafficZone=false&avoidOddEvenZone=false&alternative=false&bearing=";
+            // Construct the Neshan API URL with waypoints
+            var requestUri = $"https://api.neshan.org/v4/direction?type=car" +
+                $"&origin={schoolLat},{schoolLon}" +
+                $"&destination={schoolLat},{schoolLon}" +  // Assuming schoolLat/Lon is both origin & destination (round trip)
+                $"&waypoints={waypoints}" +
+                $"&avoidTrafficZone=false&avoidOddEvenZone=false&alternative=false&bearing=";
 
             try
             {
@@ -38,15 +44,13 @@ namespace SchoolSystem0.Server.Controllers
                     throw new Exception($"Neshan API request failed with status code {response.StatusCode}: {errorContent}");
                 }
 
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var directionResponse = JsonConvert.DeserializeObject<NeshanDirectionResponse>(responseContent);
-
-                return directionResponse?.routes?.FirstOrDefault()?.legs?.FirstOrDefault()?.distance?.value ?? 0.0;
+                // Return the raw JSON response as a string
+                return await response.Content.ReadAsStringAsync();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to get distance from Neshan API: {ex.Message}");
-                throw new Exception("Failed to get distance from Neshan API", ex);
+                Console.WriteLine($"Failed to get route from Neshan API: {ex.Message}");
+                throw new Exception("Failed to get route from Neshan API", ex);
             }
         }
     }

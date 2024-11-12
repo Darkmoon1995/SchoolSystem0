@@ -35,5 +35,40 @@ Clone the project repository and navigate into the project directory:
 
 ```bash
 git clone https://github.com/Darkmoon1995/SchoolSystem0.git
-cd yourproject
+cd SchoolSystem0
 ```
+---
+###Backend Installation (ASP.NET Core)
+ - Change to the backend directory:
+ ```bash
+cd SchoolSystem0.Server
+```
+ - Restore Dependencies:
+Use the .NET CLI to restore the project dependencies:
+
+```bash
+dotnet restore
+```
+Start the ASP.NET server
+```bash
+dotnet run
+```
+---
+###Frontend Installation (React)
+- Navigate to the React Frontend Folder:
+Change to the frontend directory:
+```bash 
+cd ../schoolsystem0.client
+```
+
+Install Dependencies
+Install the project dependencies using npm
+```bash
+npm install
+```
+Start the React development server:
+```bash
+npm start
+```
+
+

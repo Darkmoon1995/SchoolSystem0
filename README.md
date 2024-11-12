@@ -8,7 +8,7 @@ This project is a full-stack application with a **React** frontend and an **ASP.
  - News/Announcement ✔
  - Expensess (Half Done)
  - Class List ✔
- - Taxi Services ✔
+ - Taxi Services/Routing  ✔ ==> change to google map for it to work in the whole world 
  - Library ✔
  - Tests ✔
  - Attendance ✔
@@ -26,7 +26,7 @@ Before you begin, ensure you have the following installed:
 
 - **Node.js** (version 14 or higher) and **npm** (version 6 or higher) for the React frontend.
 - **.NET SDK** (version 6.0 or higher) for the ASP.NET backend.
-
+- **API** I am using [Neshan Api](https://platform.neshan.org/sdk/) for routing. 
 ---
 
 ## Step 1: Clone the Repository
@@ -70,5 +70,51 @@ Start the React development server:
 ```bash
 npm start
 ```
+---
+### Neshan API
+ Go to the neshan website and create ApiKey and sdk key
+The ApiKey has to be added to SchoolSystem0.Server/appsettings.json
+```bash 
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "ApplicationDbContextConnection": "Data Source=MyLocalDatabase.db"
+  },
+  "Jwt": {
+    "Key": "DarkmoonSuperSecretKeyHere123456789",
+    "Issuer": "https://localhost:7226",
+    "Audience": "https://localhost:5173",
+    "ExpiryDurationInMinutes": 60
+  },
+  "Neshan": {
+    "ApiKey": "**THE API KEY**"
+  },
+  "SmtpSettings": {
+    "Server": "szm",
+    "Port": 587,
+    "Username": "wertyuioIsntAvailable@hotmail.com",
+    "Password": "ThisIs#123Password#123"
+  }
+}
 
+```
+Also You must add the web.api (SDKKEY) to the schoolsystem0.client/src/Pages/TaxiServices.jsx
+
+```bash 
+import React, { useEffect, useState } from 'react'
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { AlertCircle, MapPin } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+
+const API_URL = 'https://localhost:7287/api/Students/group-near-school'
+const MAP_KEY = "Map Key" // Replace with your actual API key
+
+```
 

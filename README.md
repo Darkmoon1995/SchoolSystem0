@@ -54,7 +54,7 @@ Start the ASP.NET server
 dotnet run
 ```
 ---
-###Frontend Installation (React)
+### Frontend Installation (React)
 - Navigate to the React Frontend Folder:
 Change to the frontend directory:
 ```bash 

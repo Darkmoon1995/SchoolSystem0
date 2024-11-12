@@ -14,7 +14,7 @@ This project is a full-stack application with a **React** frontend and an **ASP.
  - Attendance ✔
  - Grades ✔
 
-###Teachers
+### Teachers
  - add Tests ✘
  - Can Get their Classes ✘
  - Can set User Attendance To appsent (For day) ✘
@@ -62,7 +62,7 @@ cd ../schoolsystem0.client
 ```
 
 Install Dependencies
-Install the project dependencies using npm
+- Install the project dependencies using npm
 ```bash
 npm install
 ```

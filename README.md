@@ -5,20 +5,20 @@ This project is a full-stack application with a **React** frontend and an **ASP.
 ## Features
 - A multi Login Feature (When login will Choose the user based on the link) ✘
 ### Students
- -News/Announcement ✔
- -Expensess (Half Done)
- -Class List ✔
- -Taxi Services ✔
- -Library ✔
- -Tests ✔
- -Attendance ✔
- -Grades ✔
+ - News/Announcement ✔
+ - Expensess (Half Done)
+ - Class List ✔
+ - Taxi Services ✔
+ - Library ✔
+ - Tests ✔
+ - Attendance ✔
+ - Grades ✔
 
 ###Teachers
- -add Tests ✘
- -Can Get their Classes ✘
- -Can set User Attendance To appsent (For day) ✘
- -Can set Grades ✘
+ - add Tests ✘
+ - Can Get their Classes ✘
+ - Can set User Attendance To appsent (For day) ✘
+ - Can set Grades ✘
 ---
 ## Prerequisites
 

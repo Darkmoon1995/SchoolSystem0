@@ -1,3 +1,5 @@
+#Droped
+
 ---
 # School System
 This project is a full-stack application with a **React** frontend and an **ASP.NET Core** backend.The idea was simple Do everything a school needs in simple project.
